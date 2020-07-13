@@ -83,7 +83,7 @@
     //!!!!:此处注掉：会导致快速滑动会跨越多个cell
     NSInteger prePage = self.currentPage - 1;
     if(prePage > 0 && page < prePage){
-        page = self.currentPage - 1;
+        page = prePage;
     } else if (page > self.currentPage + 1){
         page = self.currentPage + 1;
     }
