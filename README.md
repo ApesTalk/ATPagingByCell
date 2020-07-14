@@ -1,5 +1,7 @@
 # ATPagingByCell
-UICollectionView paging by cell (one cell at a time) not by screen, which like App Store banner and alipay. UICollectionView实现cell（不满屏）的paging效果，就像App Store游戏tab的顶部banner和支付宝财富tab的财富直通车一样的效果。
+
+A example of perfectly paging by smaller cell (only one cell at a time) not by screen, which like AppStore's banner and Alipay's banner. 
+一个使用UICollectionView实现非全屏cell的paging效果，就像AppStore游戏tab顶部banner和支付宝财富tab的财富直通车banner一样的效果（主要是非全屏cell的情况下实现不管是慢速拖拽还是快速拖拽都每次只轮播一个cell）。
 
 借助UICollectionView的pagingenabled属性，我们能快速做出漂亮的滑动翻页paging效果，可以满足我们引导页、图片预览、banner等等轮播需求。但当我们的cell宽度不是占满整个UICollectionView的时候，比如我们经常遇到一屏要展示三个cell的效果，而且还要实现一次滑动一个cell的效果。这时候，我们不得不实现``- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset``方法或者自定义UICollectionViewFlowLayout实现``- (CGPoint)targetContentOffsetForProposedContentOffset:(CGPoint)proposedContentOffset withScrollingVelocity:(CGPoint)velocity``通过矫正其偏移量来将距离UICollectionView中心点最近的cell居中显示。
 
