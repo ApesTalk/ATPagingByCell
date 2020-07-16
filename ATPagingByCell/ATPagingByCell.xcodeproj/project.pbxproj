@@ -14,6 +14,7 @@
 		6D27C34824BC314200B16251 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D27C34724BC314200B16251 /* Assets.xcassets */; };
 		6D27C34B24BC314200B16251 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6D27C34924BC314200B16251 /* LaunchScreen.storyboard */; };
 		6D27C34E24BC314200B16251 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D27C34D24BC314200B16251 /* main.m */; };
+		6D63B3A824BE9C1B001B0838 /* AppStoreCompositionalLayoutController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D63B3A724BE9C1B001B0838 /* AppStoreCompositionalLayoutController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,8 @@
 		6D27C34A24BC314200B16251 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6D27C34C24BC314200B16251 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6D27C34D24BC314200B16251 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6D63B3A624BE9C1B001B0838 /* AppStoreCompositionalLayoutController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppStoreCompositionalLayoutController.h; sourceTree = "<group>"; };
+		6D63B3A724BE9C1B001B0838 /* AppStoreCompositionalLayoutController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppStoreCompositionalLayoutController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +75,8 @@
 				6D27C34924BC314200B16251 /* LaunchScreen.storyboard */,
 				6D27C34C24BC314200B16251 /* Info.plist */,
 				6D27C34D24BC314200B16251 /* main.m */,
+				6D63B3A624BE9C1B001B0838 /* AppStoreCompositionalLayoutController.h */,
+				6D63B3A724BE9C1B001B0838 /* AppStoreCompositionalLayoutController.m */,
 			);
 			path = ATPagingByCell;
 			sourceTree = "<group>";
@@ -149,6 +154,7 @@
 				6D27C34324BC313F00B16251 /* ViewController.m in Sources */,
 				6D27C33D24BC313F00B16251 /* AppDelegate.m in Sources */,
 				6D27C34E24BC314200B16251 /* main.m in Sources */,
+				6D63B3A824BE9C1B001B0838 /* AppStoreCompositionalLayoutController.m in Sources */,
 				6D27C34024BC313F00B16251 /* SceneDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

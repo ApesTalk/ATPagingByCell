@@ -3,10 +3,11 @@
 //  ATPagingByCell
 //
 //  Created by ApesTalk on 2020/7/13.
-//  Copyright © 2020 ApesTalk. All rights reserved.
+//  Copyright © 2020 https://github.com/ApesTalk All rights reserved.
 //
 
 #import "ViewController.h"
+#import "AppStoreCompositionalLayoutController.h"
 
 @interface EmojiCell : UICollectionViewCell
 @property (nonatomic, strong) UILabel *label;
@@ -45,6 +46,12 @@
     // Do any additional setup after loading the view.
     _dataList = @[@"🐁", @"🐂", @"🐅", @"🐇", @"🐉", @"🐍", @"🐎", @"🐏", @"🐒", @"🐓", @"🐕", @"🐖"];
             
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
+    [btn setTitle:@"CompositionalLayout" forState:UIControlStateNormal];
+    btn.frame = CGRectMake(self.view.bounds.size.width-160, 44, 160, 44);
+    [btn addTarget:self action:@selector(compositionalLayout) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:btn];
+    
     UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
     layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     layout.sectionInset = UIEdgeInsetsMake(0, 38, 0, 38);
@@ -106,4 +113,11 @@
     return cell;
 }
 
+
+- (void)compositionalLayout
+{
+    AppStoreCompositionalLayoutController *vc = [AppStoreCompositionalLayoutController new];
+    vc.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:vc animated:YES completion:nil];
+}
 @end
