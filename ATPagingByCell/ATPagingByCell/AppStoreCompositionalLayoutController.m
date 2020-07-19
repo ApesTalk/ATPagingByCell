@@ -8,8 +8,32 @@
 
 #import "AppStoreCompositionalLayoutController.h"
 
+@interface MyDecorateView : UICollectionReusableView
+
+@end
+
+@implementation MyDecorateView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if(self = [super initWithFrame:frame]){
+        self.layer.cornerRadius = 10;
+        self.layer.masksToBounds = YES;
+        self.backgroundColor = [UIColor redColor];
+        self.layer.borderWidth = 2;
+        self.layer.borderColor = [UIColor lightGrayColor].CGColor;
+    }
+    return self;
+}
+
+@end
+
+
+
+
 @interface AppStoreCompositionalLayoutController ()<UICollectionViewDataSource, UICollectionViewDelegate>
 @property (nonatomic, assign) NSInteger demoType;
+@property (nonatomic, copy) NSArray *sectionTitles;
 @property (nonatomic, strong) UICollectionView *collectionView;
 @end
 
@@ -24,6 +48,11 @@
     btn.frame = CGRectMake(0, 44, 60, 44);
     [btn addTarget:self action:@selector(dismiss) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:btn];
+    
+    UILabel *lbl = [[UILabel alloc]initWithFrame:CGRectMake(60, 44, self.view.bounds.size.width-120, 44)];
+    lbl.textAlignment = NSTextAlignmentCenter;
+    lbl.text = @"AppStore布局效果";
+    [self.view addSubview:lbl];
     
     //一.决定元素大小的 NSCollectionLayoutDimension、NSCollectionLayoutSize
     //1.尺寸相当于父视图的比例
@@ -55,6 +84,8 @@
 //    [self demo0];
 //    [self demo1];
     [self demo2];
+//    [self demo3];
+//    [self demo4];
 }
 
 - (void)dismiss
@@ -65,7 +96,7 @@
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
 {
-    return 12;
+    return _demoType == 2 ? _sectionTitles.count : 2;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
@@ -98,24 +129,42 @@
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
 {
-    if(_demoType != 1){
-        return nil;
+    if(_demoType == 2){
+        if([kind isEqualToString:UICollectionElementKindSectionHeader]){
+            UICollectionReusableView *h = [collectionView dequeueReusableSupplementaryViewOfKind:kind withReuseIdentifier:@"head" forIndexPath:indexPath];
+            UILabel *l = [h viewWithTag:1000];
+            if(!l){
+                l = [UILabel new];
+                l.frame = h.bounds;
+                l.tag = 1000;
+                [h addSubview:l];
+            }
+            l.text = _sectionTitles[indexPath.section];
+            return h;
+        }
     }
-    
     
     if([kind isEqualToString:UICollectionElementKindSectionHeader]){
         UICollectionReusableView *h = [collectionView dequeueReusableSupplementaryViewOfKind:kind withReuseIdentifier:@"head" forIndexPath:indexPath];
-        UILabel *l = [UILabel new];
-        l.text = @"section header";
-        l.frame = h.bounds;
-        [h addSubview:l];
+        UILabel *l = [h viewWithTag:1000];
+        if(!l){
+            l = [UILabel new];
+            l.text = @"Section Header";
+            l.frame = h.bounds;
+            l.tag = 1000;
+            [h addSubview:l];
+        }
         return h;
     } else if([kind isEqualToString:UICollectionElementKindSectionFooter]){
         UICollectionReusableView *f = [collectionView dequeueReusableSupplementaryViewOfKind:kind withReuseIdentifier:@"foot" forIndexPath:indexPath];
-        UILabel *l = [UILabel new];
-        l.text = @"section footer";
-        l.frame = f.bounds;
-        [f addSubview:l];
+        UILabel *l = [f viewWithTag:1000];
+        if(!l){
+            l = [UILabel new];
+            l.text = @"Section Footer";
+            l.frame = f.bounds;
+            l.tag = 1000;
+            [f addSubview:l];
+        }
         return f;
     } else if([kind isEqualToString:@"Badge"]){
         UICollectionReusableView *b = [collectionView dequeueReusableSupplementaryViewOfKind:kind withReuseIdentifier:@"custom" forIndexPath:indexPath];
@@ -126,6 +175,7 @@
     }
     return nil;
 }
+
 
 
 
@@ -147,20 +197,20 @@
     //一个group可以指定多个item，指定多个，对应的cell会按items的样式依次布局
     NSCollectionLayoutSize *groupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalWidthDimension:0.25]];
     NSCollectionLayoutGroup *group = [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:groupSize subitems:@[item, item1]];
+    //interItemSpacing对指定了多个subitems才有效
     group.interItemSpacing = [NSCollectionLayoutSpacing fixedSpacing:5];
-    
-    
     
     //一个section只能指定一个group
     NSCollectionLayoutSection *section = [NSCollectionLayoutSection sectionWithGroup:group];
     section.contentInsets = NSDirectionalEdgeInsetsFromString(@"{5.0, 5.0, 5.0, 5.0}");
+    
+    
     //Orthogonal正交 在正交轴上怎么滚动？
 //    section.orthogonalScrollingBehavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPaging;
-    
+//    section.decorationItems =
     UICollectionViewCompositionalLayoutConfiguration *config = [UICollectionViewCompositionalLayoutConfiguration new];
     config.scrollDirection = UICollectionViewScrollDirectionHorizontal;//水平滚动
-    
-    
+        
     //layout只能指定一个section
     UICollectionViewCompositionalLayout *layout = [[UICollectionViewCompositionalLayout alloc]initWithSection:section configuration:config];
     
@@ -175,6 +225,10 @@
 }
 
 
+
+
+
+
 //垂直滚动，一个大cell + 两个小cell
 - (void)demo1
 {
@@ -185,9 +239,6 @@
     NSCollectionLayoutAnchor *badgeAnchor = [NSCollectionLayoutAnchor layoutAnchorWithEdges:NSDirectionalRectEdgeTop|NSDirectionalRectEdgeTrailing fractionalOffset:CGPointMake(0.5, -0.5)];//装饰视图中心点等于cell的右上角顶点
     NSCollectionLayoutSize *badgeSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:20] heightDimension:[NSCollectionLayoutDimension absoluteDimension:20]];
     NSCollectionLayoutSupplementaryItem *badge = [NSCollectionLayoutSupplementaryItem supplementaryItemWithLayoutSize:badgeSize elementKind:@"Badge" containerAnchor:badgeAnchor];
-    
-    
-    
 
     //顶部item
     NSCollectionLayoutSize *topItemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalWidthDimension:9.0/16.0]];
@@ -228,7 +279,7 @@
     
     UICollectionViewCompositionalLayout *layout = [[UICollectionViewCompositionalLayout alloc]initWithSection:section];
 
-    UICollectionView *collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 100, self.view.bounds.size.width, self.view.bounds.size.height-100) collectionViewLayout:layout];
+    UICollectionView *collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 100, self.view.bounds.size.width, self.view.bounds.size.height - 100) collectionViewLayout:layout];
     self.collectionView = collectionView;
     collectionView.backgroundColor = [UIColor lightGrayColor];
     [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
@@ -246,11 +297,10 @@
 - (void)demo2
 {
     _demoType = 2;
-    NSArray *sectionTitles = @[@"热门App", @"大家都在用", @"今天看什么", @"新鲜App", @"给小朋友", @"热门类别", @"生活微记录", @"合影不受限", @"付费App排行", @"免费App排行", @"快速链接"];
-
+    _sectionTitles = @[@"强烈推荐", @"热门App", @"大家都在用", @"今天看什么", @"新鲜App", @"给小朋友", @"热门类别", @"生活微记录", @"合影不受限", @"付费App排行", @"免费App排行", @"快速链接"];
     
     UICollectionViewCompositionalLayoutConfiguration *config = [UICollectionViewCompositionalLayoutConfiguration new];
-    config.interSectionSpacing = 30;
+    config.interSectionSpacing = 30;//不同section之间的间距
     
     
     UICollectionViewCompositionalLayout *layout = [[UICollectionViewCompositionalLayout alloc]initWithSectionProvider:^NSCollectionLayoutSection * _Nullable(NSInteger section, id<NSCollectionLayoutEnvironment> environment) {
@@ -263,7 +313,7 @@
     self.collectionView = collectionView;
     collectionView.backgroundColor = [UIColor lightGrayColor];
     [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
-//    [collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"head"];
+    [collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"head"];
 //    [collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:@"foot"];
 //    [collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:@"Badge" withReuseIdentifier:@"custom"];
     collectionView.dataSource = self;
@@ -275,21 +325,31 @@
 - (NSCollectionLayoutSection *)generateSectionForSection:(NSInteger)section
 {
     NSCollectionLayoutGroup *group;
+    NSDirectionalEdgeInsets sectionInsets = NSDirectionalEdgeInsetsMake(0, 0, 0, 0);
     UICollectionLayoutSectionOrthogonalScrollingBehavior behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorContinuous;
     switch (section) {
         case 0:
+        case 5:
         {
             //顶部banner item
-            behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPagingCentered;
+            //效果：paging by cell 看起来cell距离屏幕左右各20像素
+            sectionInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 15);
+            /*
+            UICollectionLayoutSectionOrthogonalScrollingBehaviorContinuous 正常连续滚动
+            UICollectionLayoutSectionOrthogonalScrollingBehaviorPaging 正常分页轮播（页宽等于UICollectionView的宽度)
+            UICollectionLayoutSectionOrthogonalScrollingBehaviorContinuousGroupLeadingBoundary 停止滚动时一定会停留在group的边界处
+            UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPaging 按group的尺寸进行分页
+            UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPagingCentered 也是按group的尺寸进行分页，但会沿正交轴增加首尾间距让其居中
+             */
+            behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPaging;//完美的paging by cell效果
             
-            CGFloat bannerSize = [UIScreen mainScreen].bounds.size.width - 60;
+            CGFloat bannerSize = [UIScreen mainScreen].bounds.size.width - 30;//原本占screenwidth-30
             NSCollectionLayoutSize *bannerItemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0]];
             NSCollectionLayoutItem *bannerItem = [NSCollectionLayoutItem itemWithLayoutSize:bannerItemSize];
-            bannerItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 0);
+            bannerItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 5, 0, 5);//左右各收缩5像素 占screenwidth-40
 
             NSCollectionLayoutSize *bannerGroupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:bannerSize] heightDimension:[NSCollectionLayoutDimension absoluteDimension:bannerSize]];
             group = [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:bannerGroupSize subitem:bannerItem count:1];//水平
-            
             break;
         }
         case 1:
@@ -300,11 +360,14 @@
         case 10:
         {
             //每列三行的cell样式
-            CGFloat oneThirdWidth = [UIScreen mainScreen].bounds.size.width - 60;
+            sectionInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 15);
+            behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPaging;//完美的paging by cell效果
+
+            CGFloat oneThirdWidth = [UIScreen mainScreen].bounds.size.width - 30;
             CGFloat oneThirdHeight = 80;
             NSCollectionLayoutSize *oneThirdItemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0/3.0]];
             NSCollectionLayoutItem *oneThirdItem = [NSCollectionLayoutItem itemWithLayoutSize:oneThirdItemSize];
-            oneThirdItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 0);
+            oneThirdItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 5, 0, 5);
 
             NSCollectionLayoutSize *oneThirdGroupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:oneThirdWidth] heightDimension:[NSCollectionLayoutDimension absoluteDimension:oneThirdHeight * 3.0]];
             group = [NSCollectionLayoutGroup verticalGroupWithLayoutSize:oneThirdGroupSize subitem:oneThirdItem count:3];//垂直
@@ -314,38 +377,29 @@
         case 3:
         {
             //今天看什么banner
-            behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPagingCentered;
+            sectionInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 15);
+            behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPaging;//完美的paging by cell效果
 
-            CGFloat bannerSize = [UIScreen mainScreen].bounds.size.width - 160;
+            CGFloat bannerWidth = [UIScreen mainScreen].bounds.size.width - 150;
+            CGFloat bannerHeight = 180;
             NSCollectionLayoutSize *bannerItemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0]];
             NSCollectionLayoutItem *bannerItem = [NSCollectionLayoutItem itemWithLayoutSize:bannerItemSize];
-            bannerItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 0);
+            bannerItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 5, 0, 5);
 
-            NSCollectionLayoutSize *bannerGroupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:bannerSize] heightDimension:[NSCollectionLayoutDimension absoluteDimension:bannerSize * 9.0 / 16.0]];
+            NSCollectionLayoutSize *bannerGroupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:bannerWidth] heightDimension:[NSCollectionLayoutDimension absoluteDimension:bannerHeight]];
             group = [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:bannerGroupSize subitem:bannerItem count:1];//水平
             
-            break;
-        }
-        case 5:
-        {
-            //给小朋友
-            CGFloat bannerSize = [UIScreen mainScreen].bounds.size.width - 60;
-            NSCollectionLayoutSize *bannerItemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0]];
-            NSCollectionLayoutItem *bannerItem = [NSCollectionLayoutItem itemWithLayoutSize:bannerItemSize];
-            bannerItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 0);
-
-            NSCollectionLayoutSize *bannerGroupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:bannerSize] heightDimension:[NSCollectionLayoutDimension absoluteDimension:bannerSize * 9.0 / 16.0]];
-            group = [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:bannerGroupSize subitem:bannerItem count:1];//水平
             break;
         }
         case 6:
         {
             //热门类别
-            CGFloat cellWidth = [UIScreen mainScreen].bounds.size.width;
+            sectionInsets = NSDirectionalEdgeInsetsMake(0, 20, 0, 20);
+
+            CGFloat cellWidth = [UIScreen mainScreen].bounds.size.width - 40;
             CGFloat cellHeight = 50;
             NSCollectionLayoutSize *itemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0]];
             NSCollectionLayoutItem *item = [NSCollectionLayoutItem itemWithLayoutSize:itemSize];
-            item.contentInsets = NSDirectionalEdgeInsetsMake(0, -15, 0, -30);
 
             NSCollectionLayoutSize *groupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:cellWidth] heightDimension:[NSCollectionLayoutDimension absoluteDimension:cellHeight * 8]];
             group = [NSCollectionLayoutGroup verticalGroupWithLayoutSize:groupSize subitem:item count:8];//垂直
@@ -354,11 +408,14 @@
         case 8:
         {
             //每列两行的cell样式
-            CGFloat oneSecondWidth = [UIScreen mainScreen].bounds.size.width - 60;
+            sectionInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 15);
+            behavior = UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPaging;//完美的paging by cell效果
+            
+            CGFloat oneSecondWidth = [UIScreen mainScreen].bounds.size.width - 30;
             CGFloat oneSecondHeight = 120;
             NSCollectionLayoutSize *oneSecondItemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0/2.0]];
             NSCollectionLayoutItem *oneSecondItem = [NSCollectionLayoutItem itemWithLayoutSize:oneSecondItemSize];
-            oneSecondItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 0);
+            oneSecondItem.contentInsets = NSDirectionalEdgeInsetsMake(0, 5, 0, 5);
 
             NSCollectionLayoutSize *oneSecondGroupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:oneSecondWidth] heightDimension:[NSCollectionLayoutDimension absoluteDimension:oneSecondHeight * 2.0]];
             group = [NSCollectionLayoutGroup verticalGroupWithLayoutSize:oneSecondGroupSize subitem:oneSecondItem count:2];//垂直
@@ -367,11 +424,12 @@
         case 11:
         {
             //快速链接
-            CGFloat cellWidth = [UIScreen mainScreen].bounds.size.width;
+            sectionInsets = NSDirectionalEdgeInsetsMake(0, 20, 0, 20);
+
+            CGFloat cellWidth = [UIScreen mainScreen].bounds.size.width - 40;
             CGFloat cellHeight = 50;
             NSCollectionLayoutSize *itemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0]];
             NSCollectionLayoutItem *item = [NSCollectionLayoutItem itemWithLayoutSize:itemSize];
-            item.contentInsets = NSDirectionalEdgeInsetsMake(0, -15, 0, -30);
 
             NSCollectionLayoutSize *groupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension absoluteDimension:cellWidth] heightDimension:[NSCollectionLayoutDimension absoluteDimension:cellHeight * 8]];
             group = [NSCollectionLayoutGroup verticalGroupWithLayoutSize:groupSize subitem:item count:8];//垂直
@@ -382,8 +440,105 @@
     
     NSCollectionLayoutSection *layoutSection = [NSCollectionLayoutSection sectionWithGroup:group];
     layoutSection.orthogonalScrollingBehavior = behavior;
-    layoutSection.contentInsets = NSDirectionalEdgeInsetsMake(0, 15, 0, 30);
+    layoutSection.contentInsets = sectionInsets;
+    if(section == 0){
+        layoutSection.visibleItemsInvalidationHandler = ^(NSArray<id<NSCollectionLayoutVisibleItem>> * _Nonnull visibleItems, CGPoint contentOffset, id<NSCollectionLayoutEnvironment>  _Nonnull layoutEnvironment) {
+            //这里可以判断哪个cell滚动到了屏幕中心
+        };
+    }
+    
+    //配置组头组尾
+    NSCollectionLayoutSize *headerSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension estimatedDimension:44]];
+    NSCollectionLayoutBoundarySupplementaryItem *headerItem = [NSCollectionLayoutBoundarySupplementaryItem boundarySupplementaryItemWithLayoutSize:headerSize elementKind:UICollectionElementKindSectionHeader alignment:NSRectAlignmentTop];
+    
+    layoutSection.boundarySupplementaryItems = @[headerItem];
+    
     return layoutSection;
+}
+
+
+
+//垂直布局 类似UITableViewStyleGrouped样式
+- (void)demo3
+{
+    _demoType = 3;
+    
+    NSCollectionLayoutSize *itemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.0]];
+    NSCollectionLayoutItem *item = [NSCollectionLayoutItem itemWithLayoutSize:itemSize];
+    
+    NSCollectionLayoutSize *groupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension absoluteDimension:44]];
+    NSCollectionLayoutGroup *group = [NSCollectionLayoutGroup verticalGroupWithLayoutSize:groupSize subitems:@[item]];
+    
+    NSCollectionLayoutSection *section = [NSCollectionLayoutSection sectionWithGroup:group];
+    section.contentInsets = NSDirectionalEdgeInsetsMake(20, 20, 20, 20);
+    
+    //group加装饰背景
+    /*
+     1.创建NSCollectionLayoutDecorationItem 它是NSCollectionLayoutItem的子类，不能指定layoutSize。
+     2.给NSCollectionLayoutSection的decorationItems赋值。
+     3.在UICollectionViewCompositionalLayout上面注册decorationView，在这里注册的类实现样式的自定义。
+     注意不是在collectionview上注册SupplementaryView
+     */
+    NSCollectionLayoutDecorationItem *backItem = [NSCollectionLayoutDecorationItem backgroundDecorationItemWithElementKind:@"background"];
+    backItem.contentInsets = NSDirectionalEdgeInsetsMake(10, 10, 10, 10);
+    section.decorationItems = @[backItem];
+    
+    UICollectionViewCompositionalLayoutConfiguration *config = [UICollectionViewCompositionalLayoutConfiguration new];
+    config.interSectionSpacing = 20;//不同section之间的间距
+    
+    UICollectionViewCompositionalLayout *layout = [[UICollectionViewCompositionalLayout alloc]initWithSection:section configuration:config];
+    [layout registerClass:[MyDecorateView class] forDecorationViewOfKind:@"background"];
+    
+    UICollectionView *collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 100, self.view.bounds.size.width, self.view.bounds.size.height-100) collectionViewLayout:layout];
+    self.collectionView = collectionView;
+    collectionView.backgroundColor = [UIColor lightGrayColor];
+    [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
+    collectionView.dataSource = self;
+    collectionView.delegate = self;
+    [self.view addSubview:collectionView];
+}
+
+
+- (void)demo4
+{
+    _demoType = 4;
+    
+    NSCollectionLayoutSize *groupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0] heightDimension:[NSCollectionLayoutDimension absoluteDimension:200]];
+
+    CGFloat width = [UIScreen mainScreen].bounds.size.width/3.0;
+    CGFloat height = 200/3.0;
+    //无法横向滚动
+    NSCollectionLayoutGroup *group = [NSCollectionLayoutGroup customGroupWithLayoutSize:groupSize itemProvider:^NSArray<NSCollectionLayoutGroupCustomItem *> * _Nonnull(id<NSCollectionLayoutEnvironment>  _Nonnull layoutEnvironment) {
+        //UICollectionView的每个section走一次
+        //这里想象空间很大，自己爱咋放咋放
+        NSMutableArray *arr = [NSMutableArray arrayWithCapacity:8];
+        CGFloat x = 0 , y = 0;
+        for(NSInteger i = 0; i < 8; i++){
+            NSCollectionLayoutGroupCustomItem *customItem = [NSCollectionLayoutGroupCustomItem customItemWithFrame:CGRectMake(x, y, width, height) zIndex:1000+i];
+            [arr addObject:customItem];
+            x += width;
+            if(i > 0 && i % 3 == 0){
+                x = 0;
+                y += height;
+            }
+        }
+        return arr.copy;
+    }];
+    
+    NSCollectionLayoutSection *section = [NSCollectionLayoutSection sectionWithGroup:group];
+    
+    UICollectionViewCompositionalLayoutConfiguration *config = [UICollectionViewCompositionalLayoutConfiguration new];
+    config.interSectionSpacing = 20;//不同section之间的间距
+    
+    UICollectionViewCompositionalLayout *layout = [[UICollectionViewCompositionalLayout alloc]initWithSection:section configuration:config];
+    
+    UICollectionView *collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 100, self.view.bounds.size.width, self.view.bounds.size.height-100) collectionViewLayout:layout];
+    self.collectionView = collectionView;
+    collectionView.backgroundColor = [UIColor lightGrayColor];
+    [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
+    collectionView.dataSource = self;
+    collectionView.delegate = self;
+    [self.view addSubview:collectionView];
 }
 
 @end
